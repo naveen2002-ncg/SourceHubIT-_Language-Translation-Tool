@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request
-from googletrans import Translator
+from mintrans import GoogleTranslator
 from gtts import gTTS
 from email.message import EmailMessage
 import smtplib
 import os
 
 app = Flask(__name__)
-translator = Translator()
+translator = GoogleTranslator()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -20,9 +20,13 @@ def index():
 
         if source_text:
             try:
-                translated = translator.translate(source_text, src=source_lang, dest=target_lang)
-                translated_text = translated.text
-            
+                translation_result = translator.translate(source_text, source_lang, target_lang)
+                # Extract the translated text from the response
+                if isinstance(translation_result, dict) and 'sentences' in translation_result:
+                    translated_text = translation_result['sentences'][0]['trans']
+                else:
+                    translated_text = str(translation_result)
+                
                 # Send the email
                 msg = EmailMessage()
                 msg['Subject'] = 'Translated Text'
